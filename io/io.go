@@ -1,10 +1,14 @@
 package io
 
+import "io"
+
 type Reader interface {
-	Read(b []byte) error
+	io.Reader
+	ReadFull(b []byte) error
 	ReadN(int) ([]byte, error)
 }
 
 type Writer interface {
-	Write([]byte) error
+	io.Writer
+	WriteFull([]byte) error
 }
