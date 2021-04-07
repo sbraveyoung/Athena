@@ -3,8 +3,6 @@ package io
 import (
 	"bytes"
 	"io"
-
-	"github.com/pkg/errors"
 )
 
 type Reader interface {
@@ -29,10 +27,10 @@ func NewReader(buf []byte) (reader Reader) {
 func (b buffer) ReadFull(buf []byte) error {
 	n, err := io.ReadFull(b.Buffer, buf)
 	if err != nil {
-		return errors.Wrap(err, "io.ReadFull")
+		return err
 	}
 	if n != len(buf) {
-		return errors.New("do not read enough data")
+		return err
 	}
 	return nil
 }
