@@ -13,7 +13,7 @@ func Simple() HandleErrorFunc {
 
 func HandleMultiError(f HandleErrorFunc, errs ...error) error {
 	for _, err := range errs {
-		if err != nil && !f(err) {
+		if !f(err) {
 			return err
 		}
 	}
