@@ -14,16 +14,13 @@ type easyReader struct {
 	io.Reader
 }
 
-func NewReader(r io.Reader) (reader Reader) {
+func NewEasyReader(r io.Reader) (reader Reader) {
 	return easyReader{Reader: r}
 }
 
 func (er easyReader) ReadFull(buf []byte) error {
-	n, err := io.ReadFull(er, buf)
+	_, err := io.ReadFull(er, buf)
 	if err != nil {
-		return err
-	}
-	if n != len(buf) {
 		return err
 	}
 	return nil
@@ -45,7 +42,7 @@ type easyWriter struct {
 	io.Writer
 }
 
-func NewWriter(w io.Writer) (writer Writer) {
+func NewEasyWriter(w io.Writer) (writer Writer) {
 	return easyWriter{Writer: w}
 }
 
