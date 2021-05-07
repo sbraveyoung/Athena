@@ -54,3 +54,8 @@ func NewEasyWriter(w io.Writer) (writer Writer) {
 
 //read dump
 //write dump
+
+func CopyFull(dst easyWriter, src easyReader) (err error) {
+	_, err = io.Copy(dst, src)
+	return err
+}
