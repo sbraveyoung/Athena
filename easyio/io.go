@@ -7,7 +7,7 @@ import (
 type EasyReader interface {
 	io.Reader
 	ReadFull(b []byte) error
-	ReadN(int) ([]byte, error)
+	ReadN(uint32) ([]byte, error)
 	ReadAll() ([]byte, error)
 }
 
@@ -27,7 +27,7 @@ func (er easyReader) ReadFull(buf []byte) error {
 	return nil
 }
 
-func (er easyReader) ReadN(n int) (buf []byte, err error) {
+func (er easyReader) ReadN(n uint32) (buf []byte, err error) {
 	buf = make([]byte, n)
 	err = er.ReadFull(buf)
 	return buf, err
