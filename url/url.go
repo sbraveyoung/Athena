@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/SmartBrave/utils/pool"
+	pool "github.com/SmartBrave/utils/easypool"
 )
 
 const (

@@ -51,6 +51,6 @@ func (cb *cacheBuilder) Build() Cache {
 	case TYPE_LIST:
 		return newRingBufferWithList(&cb.cacheBase)
 	default:
-		panic("ring_buffer: Unknown type" + cb.tp)
+		panic("ring_buffer: Unknown type " + cb.tp)
 	}
 }
