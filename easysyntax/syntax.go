@@ -6,19 +6,17 @@ import (
 )
 
 func DoLoop(ctx context.Context, f func(), interval time.Duration) {
+	f()
 	go func() {
-		f()
 		ticker := time.NewTicker(interval)
-	loop:
+		defer ticker.Stop()
 		for {
 			select {
 			case <-ctx.Done():
-				break loop
+				break
 			case <-ticker.C:
-				go f()
+				f()
 			}
-
 		}
-		ticker.Stop()
 	}()
 }
