@@ -107,7 +107,7 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 			return nil, badError
 		}
 		switch binaryExpr.Op {
-		case token.ASSIGN, token.EQL: //=,==
+		case token.EQL: //==
 			return reflect.DeepEqual(x, y), nil
 		case token.NEQ: //!=
 			return !reflect.DeepEqual(x, y), nil
@@ -137,6 +137,8 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 				return xv <= yv, nil
 			case token.GEQ: //>=
 				return xv >= yv, nil
+			case token.AND: //&, TODO
+			case token.OR: //|, TODO
 			default:
 				return nil, badError
 			}
@@ -147,9 +149,9 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 				return nil, badError
 			}
 			switch binaryExpr.Op {
-			case token.AND, token.LAND: //&,&&
+			case token.LAND: //&&
 				return xv && yv, nil
-			case token.OR, token.LOR: //|,||
+			case token.LOR: //||
 				return xv || yv, nil
 			default:
 				return nil, badError
