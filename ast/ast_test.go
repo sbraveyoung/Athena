@@ -267,6 +267,17 @@ func Test_Eval(t *testing.T) {
 			want:    false,
 			wantErr: false,
 		},
+		{
+			name: "23",
+			args: args{
+				args: map[string]interface{}{
+					"liveid": "123456",
+				},
+				rule: `mod(liveid,100)==56`,
+			},
+			want:    true,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

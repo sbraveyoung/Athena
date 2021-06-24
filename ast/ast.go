@@ -233,9 +233,33 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 			}
 
 			return strings.Contains(arg0v, arg1v), nil
+		case "mod": //mod with string
+			if len(callExpr.Args) != 2 {
+				return nil, badError
+			}
+			arg0, err0 := do(args, ops, callExpr.Args[0])
+			arg1, err1 := do(args, ops, callExpr.Args[1])
+			if err := easyerrors.HandleMultiError(easyerrors.Simple(), err0, err1); err != nil {
+				return nil, badError
+			}
+
+			arg0v, ok0 := arg0.(string)
+			arg1v, ok1 := arg1.(int)
+			if !ok0 || !ok1 {
+				return nil, badError
+			}
+			arg0vi, err := strconv.Atoi(arg0v)
+			if err != nil {
+				return nil, badError
+			}
+
+			return arg0vi % arg1v, nil
 		default:
 			return nil, badError
 		}
+	case *ast.AssignStmt:
+		//TODO
+		return nil, badError
 	default:
 		// case *ast.SelectorExpr: //not support
 		// case *ast.CompositeLit: //not support
