@@ -1,4 +1,4 @@
-package syntax
+package easysyntax
 
 import (
 	"context"
