@@ -1,8 +1,13 @@
 package ast
 
-import "testing"
+import (
+	"testing"
+)
 
-func Test_Eval(t *testing.T) {
+func TestAST_Judge(t *testing.T) {
+	type fields struct {
+		mode MODE
+	}
 	type args struct {
 		args map[string]interface{}
 		ops  map[string]func(interface{}) bool
@@ -10,6 +15,7 @@ func Test_Eval(t *testing.T) {
 	}
 	tests := []struct {
 		name    string
+		fields  fields
 		args    args
 		want    bool
 		wantErr bool
@@ -17,6 +23,9 @@ func Test_Eval(t *testing.T) {
 		// TODO: Add test cases.
 		{
 			name: "1",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				rule: `true`,
 			},
@@ -25,6 +34,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "2",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				rule: `false`,
 			},
@@ -33,6 +45,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "3",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"app": "media_std",
@@ -44,6 +59,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "4",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"uid": 1,
@@ -55,6 +73,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "5",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"app": "media_std",
@@ -67,6 +88,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "6",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"app": "media_std",
@@ -79,6 +103,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "7",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"app": "std_media",
@@ -91,6 +118,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "8",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"app": "media_std",
@@ -103,6 +133,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "9",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"app": "std_media",
@@ -115,6 +148,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "10",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"app": "std_media",
@@ -127,6 +163,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "11",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"uid": 3,
@@ -143,6 +182,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "12",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"uid": 3,
@@ -159,6 +201,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "13",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
@@ -170,6 +215,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "14",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
@@ -181,6 +229,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "15",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
@@ -192,6 +243,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "16",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
@@ -203,6 +257,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "17",
+			fields: fields{
+				mode: COMPATIBLE,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
@@ -214,6 +271,9 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "18",
+			fields: fields{
+				mode: COMPATIBLE,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
@@ -225,6 +285,23 @@ func Test_Eval(t *testing.T) {
 		},
 		{
 			name: "19",
+			fields: fields{
+				mode: STRICT,
+			},
+			args: args{
+				args: map[string]interface{}{
+					"app": "media_std",
+				},
+				rule: `app == media_std`,
+			},
+			want:    false,
+			wantErr: true,
+		},
+		{
+			name: "20",
+			fields: fields{
+				mode: COMPATIBLE,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"app": "media_std",
@@ -235,7 +312,10 @@ func Test_Eval(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "20",
+			name: "21",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"app": "media_std",
@@ -246,7 +326,10 @@ func Test_Eval(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "21",
+			name: "22",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"uid": 123456,
@@ -257,7 +340,10 @@ func Test_Eval(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "22",
+			name: "23",
+			fields: fields{
+				mode: STRICT,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"uid": 123456,
@@ -268,12 +354,15 @@ func Test_Eval(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "23",
+			name: "24",
+			fields: fields{
+				mode: COMPATIBLE,
+			},
 			args: args{
 				args: map[string]interface{}{
 					"liveid": "123456",
 				},
-				rule: `mod(liveid,100)==56`,
+				rule: `mod(liveid, 100)==56`,
 			},
 			want:    true,
 			wantErr: false,
@@ -281,13 +370,14 @@ func Test_Eval(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := Eval(tt.args.args, tt.args.ops, tt.args.rule)
+			a := NewAST(tt.fields.mode)
+			got, err := a.Judge(tt.args.args, tt.args.ops, tt.args.rule)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("eval() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("AST.Judge() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("eval() = %v, want %v", got, tt.want)
+				t.Errorf("AST.Judge() = %v, want %v", got, tt.want)
 			}
 		})
 	}

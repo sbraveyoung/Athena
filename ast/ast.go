@@ -12,13 +12,28 @@ import (
 	"github.com/SmartBrave/utils/easyerrors"
 )
 
-func Eval(args map[string]interface{}, ops map[string]func(interface{}) bool, rule string) (bool, error) {
+type MODE int
+
+const (
+	STRICT MODE = iota //BUG: do not support functions
+	COMPATIBLE
+)
+
+type AST struct {
+	mode MODE
+}
+
+func NewAST(m MODE) (ast *AST) {
+	return &AST{mode: m}
+}
+
+func (a *AST) Judge(args map[string]interface{}, ops map[string]func(interface{}) bool, rule string) (bool, error) {
 	exprAst, err := parser.ParseExpr(rule)
 	if err != nil {
 		return false, err
 	}
 
-	ret, err := do(args, ops, exprAst)
+	ret, err := a.do(args, ops, exprAst)
 	if flag, ok := ret.(bool); err == nil && ok {
 		return flag, nil
 	}
@@ -32,7 +47,7 @@ var (
 	badError = errors.New("bad expression")
 )
 
-func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node ast.Node) (interface{}, error) {
+func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) bool, node ast.Node) (interface{}, error) {
 	switch node.(type) {
 	case *ast.BadExpr:
 		return nil, badError
@@ -51,9 +66,15 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 			if val, ok := ops[ident.Name]; ok {
 				return val, nil
 			}
-			//compatible with app=\"media_std\", app=media_std and predefined functions.
-			return ident.Name, nil
-			// return nil, badError
+			switch a.mode {
+			case STRICT:
+				return nil, badError
+			case COMPATIBLE:
+				//compatible with app=\"media_std\", app=media_std and predefined functions.
+				return ident.Name, nil
+			default:
+				//XXX: do nothing?
+			}
 		}
 	case *ast.BasicLit:
 		basicLit := node.(*ast.BasicLit)
@@ -71,11 +92,11 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 		}
 	case *ast.ParenExpr:
 		parenExpr := node.(*ast.ParenExpr)
-		return do(args, ops, parenExpr.X)
+		return a.do(args, ops, parenExpr.X)
 	case *ast.IndexExpr: //NOTE: index with slice is not supported!
 		indexExpr := node.(*ast.IndexExpr)
-		x, err1 := do(args, ops, indexExpr.X)
-		index, err2 := do(args, ops, indexExpr.Index)
+		x, err1 := a.do(args, ops, indexExpr.X)
+		index, err2 := a.do(args, ops, indexExpr.Index)
 		if err := easyerrors.HandleMultiError(easyerrors.Simple(), err1, err2); err != nil {
 			return nil, badError
 		}
@@ -87,7 +108,7 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 		return xv(index), nil
 	case *ast.UnaryExpr:
 		unaryExpr := node.(*ast.UnaryExpr)
-		x, err := do(args, ops, unaryExpr.X)
+		x, err := a.do(args, ops, unaryExpr.X)
 		if err != nil {
 			return nil, badError
 		}
@@ -101,8 +122,8 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 		}
 	case *ast.BinaryExpr:
 		binaryExpr := node.(*ast.BinaryExpr)
-		x, err1 := do(args, ops, binaryExpr.X)
-		y, err2 := do(args, ops, binaryExpr.Y)
+		x, err1 := a.do(args, ops, binaryExpr.X)
+		y, err2 := a.do(args, ops, binaryExpr.Y)
 		if err := easyerrors.HandleMultiError(easyerrors.Simple(), err1, err2); err != nil {
 			return nil, badError
 		}
@@ -165,7 +186,7 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 			return nil, badError
 		}
 
-		x, err := do(args, ops, sliceExpr.X)
+		x, err := a.do(args, ops, sliceExpr.X)
 		if err != nil {
 			return nil, badError
 		}
@@ -176,7 +197,7 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 
 		lowv := 0
 		if sliceExpr.Low != nil {
-			low, err := do(args, ops, sliceExpr.Low)
+			low, err := a.do(args, ops, sliceExpr.Low)
 			if err != nil {
 				return nil, badError
 			}
@@ -189,7 +210,7 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 
 		highv := len(xv)
 		if sliceExpr.High != nil {
-			high, err := do(args, ops, sliceExpr.High)
+			high, err := a.do(args, ops, sliceExpr.High)
 			if err != nil {
 				return nil, badError
 			}
@@ -206,7 +227,7 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 		return xv[lowv:highv], nil
 	case *ast.CallExpr:
 		callExpr := node.(*ast.CallExpr)
-		fun, err := do(args, ops, callExpr.Fun)
+		fun, err := a.do(args, ops, callExpr.Fun)
 		if err != nil {
 			return nil, err
 		}
@@ -220,8 +241,8 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 			if len(callExpr.Args) != 2 {
 				return nil, badError
 			}
-			arg0, err0 := do(args, ops, callExpr.Args[0])
-			arg1, err1 := do(args, ops, callExpr.Args[1])
+			arg0, err0 := a.do(args, ops, callExpr.Args[0])
+			arg1, err1 := a.do(args, ops, callExpr.Args[1])
 			if err := easyerrors.HandleMultiError(easyerrors.Simple(), err0, err1); err != nil {
 				return nil, badError
 			}
@@ -237,8 +258,8 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 			if len(callExpr.Args) != 2 {
 				return nil, badError
 			}
-			arg0, err0 := do(args, ops, callExpr.Args[0])
-			arg1, err1 := do(args, ops, callExpr.Args[1])
+			arg0, err0 := a.do(args, ops, callExpr.Args[0])
+			arg1, err1 := a.do(args, ops, callExpr.Args[1])
 			if err := easyerrors.HandleMultiError(easyerrors.Simple(), err0, err1); err != nil {
 				return nil, badError
 			}
@@ -258,8 +279,21 @@ func do(args map[string]interface{}, ops map[string]func(interface{}) bool, node
 			return nil, badError
 		}
 	case *ast.AssignStmt:
-		//TODO
-		return nil, badError
+		assignStmt := node.(*ast.AssignStmt)
+		switch assignStmt.Tok {
+		case token.ASSIGN:
+			switch a.mode {
+			case STRICT:
+				//TODO
+			case COMPATIBLE:
+				if len(assignStmt.Lhs) != len(assignStmt.Rhs) {
+					return nil, badError
+				}
+				return reflect.DeepEqual(assignStmt.Lhs, assignStmt.Rhs), nil
+			default:
+				return nil, badError
+			}
+		}
 	default:
 		// case *ast.SelectorExpr: //not support
 		// case *ast.CompositeLit: //not support
