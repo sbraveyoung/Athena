@@ -52,6 +52,7 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 	case *ast.BadExpr:
 		return nil, badError
 	case *ast.Ident:
+		//XXX: could do better!
 		ident := node.(*ast.Ident)
 		switch ident.Name {
 		case "true":
