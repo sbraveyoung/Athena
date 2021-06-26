@@ -74,7 +74,7 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 				//compatible with app=\"media_std\", app=media_std and predefined functions.
 				return ident.Name, nil
 			default:
-				//XXX: do nothing?
+				return nil, badError
 			}
 		}
 	case *ast.BasicLit:
@@ -159,8 +159,24 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 				return xv <= yv, nil
 			case token.GEQ: //>=
 				return xv >= yv, nil
-			case token.AND: //&, TODO
-			case token.OR: //|, TODO
+			case token.AND: //&
+				switch a.mode {
+				case STRICT:
+					return xv & yv, nil
+				case COMPATIBLE:
+					return xv != 0 && yv != 0, nil
+				default:
+					return nil, badError
+				}
+			case token.OR: //|
+				switch a.mode {
+				case STRICT:
+					return xv | yv, nil
+				case COMPATIBLE:
+					return xv != 0 || yv != 0, nil
+				default:
+					return nil, badError
+				}
 			default:
 				return nil, badError
 			}
@@ -175,6 +191,24 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 				return xv && yv, nil
 			case token.LOR: //||
 				return xv || yv, nil
+			case token.AND: //&
+				switch a.mode {
+				case STRICT:
+					return nil, badError
+				case COMPATIBLE:
+					return xv && yv, nil
+				default:
+					return nil, badError
+				}
+			case token.OR: //|
+				switch a.mode {
+				case STRICT:
+					return nil, badError
+				case COMPATIBLE:
+					return xv || yv, nil
+				default:
+					return nil, badError
+				}
 			default:
 				return nil, badError
 			}
@@ -285,7 +319,8 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 		case token.ASSIGN:
 			switch a.mode {
 			case STRICT:
-				//TODO
+				//XXX: support assign operator?
+				return nil, badError
 			case COMPATIBLE:
 				if len(assignStmt.Lhs) != len(assignStmt.Rhs) {
 					return nil, badError
@@ -296,13 +331,7 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 			}
 		}
 	default:
-		// case *ast.SelectorExpr: //not support
-		// case *ast.CompositeLit: //not support
-		// case *ast.Ellipsis: //not support
-		// case *ast.TypeAssertExpr: //not support
-		// case *ast.FuncLit: //not support
-		// case *ast.StarExpr: //not support
-		// case *ast.KeyValueExpr://not support
+		return nil, badError
 	}
 
 	return nil, badError

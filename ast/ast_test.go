@@ -367,6 +367,28 @@ func TestAST_Judge(t *testing.T) {
 			want:    true,
 			wantErr: false,
 		},
+		{
+			name: "25",
+			fields: fields{
+				mode: COMPATIBLE,
+			},
+			args: args{
+				rule: `true & false`,
+			},
+			want:    false,
+			wantErr: false,
+		},
+		{
+			name: "26",
+			fields: fields{
+				mode: COMPATIBLE,
+			},
+			args: args{
+				rule: `true | false`,
+			},
+			want:    true,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
