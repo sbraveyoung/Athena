@@ -11,7 +11,8 @@ type Cache interface {
 }
 
 type cacheBase struct {
-	size int
+	size  int
+	block bool
 }
 
 type cacheBuilder struct {
@@ -44,7 +45,15 @@ func (cb *cacheBuilder) List() *cacheBuilder {
 	return cb.EvictType(TYPE_LIST)
 }
 
+func (cb *cacheBuilder) Block() *cacheBuilder {
+	cb.block = true
+	return cb
+}
+
 func (cb *cacheBuilder) Build() Cache {
+	if cb.block {
+		return newRingBufferBlocking(&cb.cacheBase)
+	}
 	switch cb.tp {
 	case TYPE_ARRAY:
 		return newRingBufferWithArray(&cb.cacheBase)

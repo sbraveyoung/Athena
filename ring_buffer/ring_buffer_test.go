@@ -14,6 +14,7 @@ func Test_ringBuffer(t *testing.T) {
 		name  string
 		size  int
 		tYpe  string
+		block bool
 		items []item
 	}{
 		// TODO: Add test cases.
@@ -100,10 +101,28 @@ func Test_ringBuffer(t *testing.T) {
 				item{"get", 7},
 			},
 		},
+		{
+			name:  "6",
+			size:  3,
+			tYpe:  TYPE_LIST,
+			block: true,
+			items: []item{
+				item{"append", 1},
+				item{"append", 2},
+				item{"append", 3},
+				item{"get", 1},
+				item{"get", 2},
+				item{"get", 3},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cache := NewRingBuffer(tt.size).EvictType(tt.tYpe).Build()
+			cb := NewRingBuffer(tt.size).EvictType(tt.tYpe)
+			if tt.block {
+				cb = cb.Block()
+			}
+			cache := cb.Build()
 			for index, v := range tt.items {
 				switch v.op {
 				case "get":
