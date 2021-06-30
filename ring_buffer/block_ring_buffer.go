@@ -17,5 +17,8 @@ func (rb *ringBufferBlocking) Get() (val interface{}) {
 }
 
 func (rb *ringBufferBlocking) Append(val interface{}) {
+	if len(rb.c) == rb.size {
+		_ = <-rb.c
+	}
 	rb.c <- val
 }

@@ -113,6 +113,13 @@ func Test_ringBuffer(t *testing.T) {
 				item{"get", 1},
 				item{"get", 2},
 				item{"get", 3},
+				item{"append", 1},
+				item{"append", 2},
+				item{"append", 3},
+				item{"append", 4},
+				item{"get", 2},
+				item{"get", 3},
+				item{"get", 4},
 			},
 		},
 	}
