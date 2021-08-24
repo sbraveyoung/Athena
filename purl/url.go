@@ -1,4 +1,4 @@
-package ourl
+package purl
 
 import (
 	"net/url"
