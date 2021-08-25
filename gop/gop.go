@@ -1,11 +1,15 @@
 package gop
 
-import "sync"
+import (
+	"sync"
+)
 
 type GOP struct {
-	alive bool
-	data  []interface{}
-	c     *sync.Cond
+	data   []interface{}
+	c      *sync.Cond
+	alive  bool
+	lrSize int //size of last round
+	round  int
 }
 
 func NewGOP() *GOP {
@@ -23,6 +27,15 @@ func (gop *GOP) Write(p interface{}) {
 	gop.c.Broadcast()
 }
 
+func (gop *GOP) Reset() {
+	gop.c.L.Lock()
+	gop.lrSize = len(gop.data)
+	gop.data = gop.data[0:0:cap(gop.data)]
+	gop.round++
+	gop.c.L.Unlock()
+	gop.c.Broadcast()
+}
+
 func (gop *GOP) DisAlive() {
 	gop.c.L.Lock()
 	gop.alive = false
@@ -34,30 +47,54 @@ func (gop *GOP) DisAlive() {
 type GOPReader struct {
 	index int
 	gop   *GOP
+	round int
 }
 
 func NewGOPReader(gop *GOP) *GOPReader {
 	return &GOPReader{
 		index: 0,
 		gop:   gop,
+		round: gop.round,
 	}
 }
 
-func (r *GOPReader) Read() (p interface{}, alive bool) {
+func (r *GOPReader) reset() {
+	r.index = 0
+	r.round = r.gop.round
+}
+
+func (r *GOPReader) Read(who string) (p interface{}, alive bool) {
 	r.gop.c.L.Lock()
-	for r.gop.alive && r.index >= len(r.gop.data) {
-		r.gop.c.Wait()
+	for {
+		alive = r.gop.alive
+		if r.round == r.gop.round-1 {
+			if r.index < len(r.gop.data) {
+				//read too slowly, try to reset reader
+				r.reset()
+			} else if r.index < r.gop.lrSize {
+				//normal, do nothing
+			} else {
+				r.reset()
+			}
+		} else if r.round == r.gop.round {
+			if r.index < len(r.gop.data) {
+				//normal, do nothing
+			} else {
+				if alive {
+					r.gop.c.Wait()
+					continue
+				} else {
+					r.gop.c.L.Unlock()
+					return
+				}
+			}
+		} else {
+			r.reset()
+		}
+		break
 	}
-
-	alive = r.gop.alive
-	if !alive && r.index < len(r.gop.data) {
-		alive = true
-	}
+	p = r.gop.data[r.index]
 	r.gop.c.L.Unlock()
-
-	if alive {
-		p = r.gop.data[r.index]
-		r.index++
-	}
-	return p, alive
+	r.index++
+	return p, true
 }
