@@ -63,7 +63,7 @@ func (r *GOPReader) reset() {
 	r.round = r.gop.round
 }
 
-func (r *GOPReader) Read(who string) (p interface{}, alive bool) {
+func (r *GOPReader) Read() (p interface{}, alive bool) {
 	r.gop.c.L.Lock()
 	for {
 		alive = r.gop.alive

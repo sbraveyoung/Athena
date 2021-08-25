@@ -14,7 +14,7 @@ func TestGOP(t *testing.T) {
 	go func() {
 		//consumer1
 		for {
-			p, alive := reader1.Read("reader1")
+			p, alive := reader1.Read()
 			if !alive {
 				fmt.Println("reader1 gop disalive!")
 				break
@@ -25,7 +25,7 @@ func TestGOP(t *testing.T) {
 	go func() {
 		//consumer2
 		for {
-			p, alive := reader2.Read("reader2")
+			p, alive := reader2.Read()
 			if !alive {
 				fmt.Println("reader2 gop disalive!")
 				break
