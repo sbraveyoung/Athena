@@ -14,20 +14,32 @@ func TestGOP(t *testing.T) {
 	go func() {
 		//consumer1
 		for {
-			p := reader1.Read().(int)
-			fmt.Println("reader1: ", p)
+			p, alive := reader1.Read()
+			if !alive {
+				fmt.Println("reader1 gop disalive!")
+				break
+			}
+			fmt.Println("reader1: ", p.(int))
 		}
 	}()
 	go func() {
 		//consumer2
 		for {
-			p := reader2.Read().(int)
-			fmt.Println("reader2: ", p)
+			p, alive := reader2.Read()
+			if !alive {
+				fmt.Println("reader2 gop disalive!")
+				break
+			}
+			fmt.Println("reader2: ", p.(int))
 		}
 	}()
 	//producer
-	for i := 0; i < 30; i++ {
-		time.Sleep(time.Second * time.Duration(2))
+	for i := 0; i < 10; i++ {
+		time.Sleep(time.Second * time.Duration(1))
 		gop.Write(i)
 	}
+	gop.DisAlive()
+
+	time.Sleep(time.Second * time.Duration(2))
+	fmt.Println("done")
 }

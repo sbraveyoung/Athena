@@ -3,19 +3,29 @@ package gop
 import "sync"
 
 type GOP struct {
-	data []interface{}
-	c    *sync.Cond
+	alive bool
+	data  []interface{}
+	c     *sync.Cond
 }
 
 func NewGOP() *GOP {
 	return &GOP{
-		c: sync.NewCond(&sync.Mutex{}),
+		alive: true,
+		c:     sync.NewCond(&sync.Mutex{}),
 	}
 }
 
 func (gop *GOP) Write(p interface{}) {
 	gop.c.L.Lock()
 	gop.data = append(gop.data, p)
+	gop.c.L.Unlock()
+
+	gop.c.Broadcast()
+}
+
+func (gop *GOP) DisAlive() {
+	gop.c.L.Lock()
+	gop.alive = false
 	gop.c.L.Unlock()
 
 	gop.c.Broadcast()
@@ -33,13 +43,21 @@ func NewGOPReader(gop *GOP) *GOPReader {
 	}
 }
 
-func (r *GOPReader) Read() (p interface{}) {
+func (r *GOPReader) Read() (p interface{}, alive bool) {
 	r.gop.c.L.Lock()
-	for r.index >= len(r.gop.data) {
+	for r.gop.alive && r.index >= len(r.gop.data) {
 		r.gop.c.Wait()
 	}
+
+	alive = r.gop.alive
+	if !alive && r.index < len(r.gop.data) {
+		alive = true
+	}
 	r.gop.c.L.Unlock()
-	p = r.gop.data[r.index]
-	r.index++
-	return p
+
+	if alive {
+		p = r.gop.data[r.index]
+		r.index++
+	}
+	return p, alive
 }
