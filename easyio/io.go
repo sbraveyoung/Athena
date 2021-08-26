@@ -50,13 +50,13 @@ func (er easyReader) ReadAll() (b []byte, err error) {
 type EasyWriter interface {
 	io.Writer
 	WriteFull([]byte) error
-	Flush() error
+	// Flush() error
 	// WriteN([]byte, int) error
 }
 
 type easyWriter struct {
-	// io.Writer
-	*bufio.Writer
+	io.Writer
+	// *bufio.Writer
 }
 
 func NewEasyWriter(w io.Writer) (writer EasyWriter) {
