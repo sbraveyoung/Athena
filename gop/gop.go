@@ -22,7 +22,7 @@ func NewGOP() *GOP {
 
 func (gop *GOP) Write(p interface{}) {
 	gop.c.L.Lock()
-	if gop.round == 0 || gop.wIndex >= len(gop.data) {
+	if gop.wIndex >= len(gop.data) {
 		gop.data = append(gop.data, p)
 	} else {
 		gop.data[gop.wIndex] = p
