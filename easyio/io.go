@@ -1,7 +1,6 @@
 package easyio
 
 import (
-	"bufio"
 	"io"
 
 	"github.com/pkg/errors"
@@ -60,7 +59,8 @@ type easyWriter struct {
 }
 
 func NewEasyWriter(w io.Writer) (writer EasyWriter) {
-	return easyWriter{Writer: bufio.NewWriter(w)}
+	//return easyWriter{Writer: bufio.NewWriter(w)}
+	return easyWriter{Writer: w}
 }
 
 func (ew easyWriter) WriteFull(b []byte) error {
