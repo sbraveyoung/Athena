@@ -16,7 +16,8 @@ type GOP struct {
 func NewGOP() *GOP {
 	return &GOP{
 		alive: true,
-		c:     sync.NewCond(&sync.Mutex{}),
+		//TODO: implement a RWMutex to replace Mutex here!
+		c: sync.NewCond(&sync.Mutex{}),
 	}
 }
 
@@ -35,7 +36,7 @@ func (gop *GOP) Write(p interface{}) {
 
 func (gop *GOP) Reset() {
 	gop.c.L.Lock()
-	gop.lrSize = len(gop.data)
+	gop.lrSize = gop.wIndex
 	gop.round++
 	gop.wIndex = 0
 	gop.c.L.Unlock()
