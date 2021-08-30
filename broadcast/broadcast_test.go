@@ -1,4 +1,4 @@
-package gop
+package broadcast
 
 import (
 	"fmt"
@@ -6,17 +6,17 @@ import (
 	"time"
 )
 
-func TestGOP(t *testing.T) {
-	gop := NewGOP()
-	reader1 := NewGOPReader(gop)
-	reader2 := NewGOPReader(gop)
+func TestBroadcast(t *testing.T) {
+	bd := NewBroadcast()
+	reader1 := NewBroadcastReader(bd)
+	reader2 := NewBroadcastReader(bd)
 
 	go func() {
 		//consumer1
 		for {
 			p, alive := reader1.Read()
 			if !alive {
-				fmt.Println("reader1 gop disalive!")
+				fmt.Println("reader1 bd disalive!")
 				break
 			}
 			fmt.Println("reader1: ", p)
@@ -27,7 +27,7 @@ func TestGOP(t *testing.T) {
 		for {
 			p, alive := reader2.Read()
 			if !alive {
-				fmt.Println("reader2 gop disalive!")
+				fmt.Println("reader2 bd disalive!")
 				break
 			}
 			fmt.Println("reader2: ", p)
@@ -37,16 +37,16 @@ func TestGOP(t *testing.T) {
 	//producer
 	for i := 0; i < 20; i++ {
 		//time.Sleep(time.Second * time.Duration(1))
-		gop.Write(i)
+		bd.Write(i)
 	}
 
 	time.Sleep(time.Second * time.Duration(1))
-	gop.Reset()
+	bd.Reset()
 	for i := 'a'; i < 'h'; i++ {
-		gop.Write(i)
+		bd.Write(i)
 	}
 
-	gop.DisAlive()
+	bd.DisAlive()
 
 	time.Sleep(time.Second * time.Duration(2))
 	fmt.Println("done")
