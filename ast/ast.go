@@ -2,20 +2,20 @@ package ast
 
 import (
 	"errors"
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"reflect"
 	"strconv"
 	"strings"
 
-	"github.com/SmartBrave/utils/easyerrors"
+	"github.com/SmartBrave/utils_sb/ast/go/ast"
+	"github.com/SmartBrave/utils_sb/ast/go/parser"
+	"github.com/SmartBrave/utils_sb/ast/go/token"
+	"github.com/SmartBrave/utils_sb/easyerrors"
 )
 
 type MODE int
 
 const (
-	STRICT MODE = iota //BUG: do not support functions
+	STRICT MODE = iota
 	COMPATIBLE
 )
 
@@ -27,13 +27,13 @@ func NewAST(m MODE) (ast *AST) {
 	return &AST{mode: m}
 }
 
-func (a *AST) Judge(args map[string]interface{}, ops map[string]func(interface{}) bool, rule string) (bool, error) {
+func (a *AST) Judge(variable map[string]interface{}, functions map[string]interface{}, rule string) (bool, error) {
 	exprAst, err := parser.ParseExpr(rule)
 	if err != nil {
 		return false, err
 	}
 
-	ret, err := a.do(args, ops, exprAst)
+	ret, err := a.do(variable, functions, exprAst)
 	if flag, ok := ret.(bool); err == nil && ok {
 		return flag, nil
 	}
@@ -47,36 +47,28 @@ var (
 	badError = errors.New("bad expression")
 )
 
-func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) bool, node ast.Node) (interface{}, error) {
+func (a *AST) do(variable map[string]interface{}, functions map[string]interface{}, node ast.Node) (interface{}, error) {
 	switch node.(type) {
 	case *ast.BadExpr:
 		return nil, badError
 	case *ast.Ident:
-		//XXX: could do better!
 		ident := node.(*ast.Ident)
-		switch ident.Name {
+		iName := ident.Name
+
+		switch iName {
 		case "true":
 			return true, nil
 		case "false":
 			return false, nil
 		default:
-			//!!!NOTE!!!: ensure that the keys in args and ops do not overlap, and don't conflict with predefined functions.
-			if val, ok := args[ident.Name]; ok {
-				return val, nil
-			}
-			if val, ok := ops[ident.Name]; ok {
-				return val, nil
-			}
-			switch a.mode {
-			case STRICT:
-				return nil, badError
-			case COMPATIBLE:
-				//compatible with app=\"media_std\", app=media_std and predefined functions.
-				return ident.Name, nil
-			default:
-				return nil, badError
-			}
+			return iName, nil
 		}
+	case *ast.Variable:
+		v := node.(*ast.Variable)
+		if val, ok := variable[v.Name]; ok {
+			return val, nil
+		}
+		return nil, badError
 	case *ast.BasicLit:
 		basicLit := node.(*ast.BasicLit)
 		switch basicLit.Kind {
@@ -93,23 +85,27 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 		}
 	case *ast.ParenExpr:
 		parenExpr := node.(*ast.ParenExpr)
-		return a.do(args, ops, parenExpr.X)
-	case *ast.IndexExpr: //NOTE: index with slice is not supported!
+		return a.do(variable, functions, parenExpr.X)
+	case *ast.IndexExpr:
 		indexExpr := node.(*ast.IndexExpr)
-		x, err1 := a.do(args, ops, indexExpr.X)
-		index, err2 := a.do(args, ops, indexExpr.Index)
+		x, err1 := a.do(variable, functions, indexExpr.X)
+		index, err2 := a.do(variable, functions, indexExpr.Index)
 		if err := easyerrors.HandleMultiError(easyerrors.Simple(), err1, err2); err != nil {
 			return nil, badError
 		}
 
-		xv, okx := x.(func(interface{}) bool)
-		if !okx {
+		xv := reflect.ValueOf(x)
+		switch reflect.TypeOf(x).Kind() {
+		case reflect.Array, reflect.Slice, reflect.String:
+			return xv.Index(index.(int)).Interface(), nil
+		case reflect.Map:
+			return xv.MapIndex(reflect.ValueOf(index)).Interface(), nil
+		default:
 			return nil, badError
 		}
-		return xv(index), nil
 	case *ast.UnaryExpr:
 		unaryExpr := node.(*ast.UnaryExpr)
-		x, err := a.do(args, ops, unaryExpr.X)
+		x, err := a.do(variable, functions, unaryExpr.X)
 		if err != nil {
 			return nil, badError
 		}
@@ -123,8 +119,8 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 		}
 	case *ast.BinaryExpr:
 		binaryExpr := node.(*ast.BinaryExpr)
-		x, err1 := a.do(args, ops, binaryExpr.X)
-		y, err2 := a.do(args, ops, binaryExpr.Y)
+		x, err1 := a.do(variable, functions, binaryExpr.X)
+		y, err2 := a.do(variable, functions, binaryExpr.Y)
 		if err := easyerrors.HandleMultiError(easyerrors.Simple(), err1, err2); err != nil {
 			return nil, badError
 		}
@@ -220,19 +216,18 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 		if sliceExpr.Slice3 {
 			return nil, badError
 		}
-
-		x, err := a.do(args, ops, sliceExpr.X)
+		x, err := a.do(variable, functions, sliceExpr.X)
 		if err != nil {
 			return nil, badError
 		}
-		xv, okx := x.(string) //NOTE: only support string, eg: cv[8:]=="Iphone" while cv=="IK7.8.9_Iphone"
-		if !okx {
+		if t := reflect.TypeOf(x).Kind(); t != reflect.Array && t != reflect.Slice && t != reflect.String {
 			return nil, badError
 		}
+		xLen := reflect.ValueOf(x).Len()
 
 		lowv := 0
 		if sliceExpr.Low != nil {
-			low, err := a.do(args, ops, sliceExpr.Low)
+			low, err := a.do(variable, functions, sliceExpr.Low)
 			if err != nil {
 				return nil, badError
 			}
@@ -243,9 +238,9 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 			}
 		}
 
-		highv := len(xv)
+		highv := xLen
 		if sliceExpr.High != nil {
-			high, err := a.do(args, ops, sliceExpr.High)
+			high, err := a.do(variable, functions, sliceExpr.High)
 			if err != nil {
 				return nil, badError
 			}
@@ -256,13 +251,14 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 			}
 		}
 
-		if lowv >= highv || lowv < 0 || highv > len(xv) {
+		if lowv >= highv || lowv < 0 || highv > xLen {
 			return nil, badError
 		}
-		return xv[lowv:highv], nil
+
+		return reflect.ValueOf(x).Slice(lowv, highv).Interface(), nil
 	case *ast.CallExpr:
 		callExpr := node.(*ast.CallExpr)
-		fun, err := a.do(args, ops, callExpr.Fun)
+		fun, err := a.do(variable, functions, callExpr.Fun)
 		if err != nil {
 			return nil, err
 		}
@@ -270,48 +266,63 @@ func (a *AST) do(args map[string]interface{}, ops map[string]func(interface{}) b
 		if !ok {
 			return nil, badError
 		}
+		if f, ok := functions[funv]; ok {
+			in := []reflect.Value{}
+			for i := 0; i < len(callExpr.Args); i++ {
+				arg, err := a.do(variable, functions, callExpr.Args[i])
+				if err != nil {
+					return nil, badError
+				}
+				in = append(in, reflect.ValueOf(arg))
+			}
+			out := reflect.ValueOf(f).Call(in)
+			if len(out) == 0 {
+				return nil, nil
+			}
+			return out[0].Interface(), nil //NOTE: ignore other values
+		} else {
+			switch strings.ToLower(funv) {
+			case "contains":
+				if len(callExpr.Args) != 2 {
+					return nil, badError
+				}
+				arg0, err0 := a.do(variable, functions, callExpr.Args[0])
+				arg1, err1 := a.do(variable, functions, callExpr.Args[1])
+				if err := easyerrors.HandleMultiError(easyerrors.Simple(), err0, err1); err != nil {
+					return nil, badError
+				}
 
-		switch strings.ToLower(funv) {
-		case "contains":
-			if len(callExpr.Args) != 2 {
-				return nil, badError
-			}
-			arg0, err0 := a.do(args, ops, callExpr.Args[0])
-			arg1, err1 := a.do(args, ops, callExpr.Args[1])
-			if err := easyerrors.HandleMultiError(easyerrors.Simple(), err0, err1); err != nil {
-				return nil, badError
-			}
+				arg0v, ok0 := arg0.(string)
+				arg1v, ok1 := arg1.(string)
+				if !ok0 || !ok1 {
+					return nil, badError
+				}
 
-			arg0v, ok0 := arg0.(string)
-			arg1v, ok1 := arg1.(string)
-			if !ok0 || !ok1 {
-				return nil, badError
-			}
+				return strings.Contains(arg0v, arg1v), nil
+			case "mod": //mod with string
+				if len(callExpr.Args) != 2 {
+					return nil, badError
+				}
+				arg0, err0 := a.do(variable, functions, callExpr.Args[0])
+				arg1, err1 := a.do(variable, functions, callExpr.Args[1])
+				if err := easyerrors.HandleMultiError(easyerrors.Simple(), err0, err1); err != nil {
+					return nil, badError
+				}
 
-			return strings.Contains(arg0v, arg1v), nil
-		case "mod": //mod with string
-			if len(callExpr.Args) != 2 {
-				return nil, badError
-			}
-			arg0, err0 := a.do(args, ops, callExpr.Args[0])
-			arg1, err1 := a.do(args, ops, callExpr.Args[1])
-			if err := easyerrors.HandleMultiError(easyerrors.Simple(), err0, err1); err != nil {
-				return nil, badError
-			}
+				arg0v, ok0 := arg0.(string)
+				arg1v, ok1 := arg1.(int)
+				if !ok0 || !ok1 {
+					return nil, badError
+				}
+				arg0vi, err := strconv.Atoi(arg0v)
+				if err != nil {
+					return nil, badError
+				}
 
-			arg0v, ok0 := arg0.(string)
-			arg1v, ok1 := arg1.(int)
-			if !ok0 || !ok1 {
+				return arg0vi % arg1v, nil
+			default:
 				return nil, badError
 			}
-			arg0vi, err := strconv.Atoi(arg0v)
-			if err != nil {
-				return nil, badError
-			}
-
-			return arg0vi % arg1v, nil
-		default:
-			return nil, badError
 		}
 	case *ast.AssignStmt:
 		assignStmt := node.(*ast.AssignStmt)

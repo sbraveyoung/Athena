@@ -1,10 +1,10 @@
-Some libraries that make [golang](https://golang.org/) better.
+**Athena**: Some libraries that make [golang](https://golang.org/) better.
 
 * :sunny: [ast](./ast): **Ast** is a library that parse a logic string like golang code, and return a boolean to report true or false.
 * :tada: [bitmap](./bitmap): A bitmap implementation.
-* :beer: [broadcast](./broadcast): Want to broadcast a message in golang? Try it!
+* :beer: [broadcast](./broadcast): Want to broadcast a message in golang between goroutines? Try it!
 * :lollipop: [consistent_hash](./consistent_hash): A consistent hash implementation.
-* :poop: [easyerrors](./easyerrors): An easy way to handle error in [golang](https://golang.org/).
+* :poop: [easyerrors](./easyerrors): An easy way to handle error in golang.
 * :see_no_evil: [easyhttpclient](./easyhttpclient): An easy way to send HTTP request.
 * :panda_face: [easyio](./easyio): Like `io` package, but easy to use.
 * :rainbow: [easypool](./easypool): A memory pool to avoid performance loss by GC.

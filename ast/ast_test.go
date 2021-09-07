@@ -10,7 +10,7 @@ func TestAST_Judge(t *testing.T) {
 	}
 	type args struct {
 		args map[string]interface{}
-		ops  map[string]func(interface{}) bool
+		ops  map[string]interface{}
 		rule string
 	}
 	tests := []struct {
@@ -52,7 +52,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"app": "media_std",
 				},
-				rule: `app == "media_std"`,
+				rule: `${app} == "media_std"`,
 			},
 			want:    true,
 			wantErr: false,
@@ -66,7 +66,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"uid": 1,
 				},
-				rule: `uid % 10 < 3`,
+				rule: `${uid} % 10 < 3`,
 			},
 			want:    true,
 			wantErr: false,
@@ -81,7 +81,7 @@ func TestAST_Judge(t *testing.T) {
 					"app": "media_std",
 					"uid": 1,
 				},
-				rule: `app == "media_std" && uid % 10 < 3`,
+				rule: `${app} == "media_std" && ${uid} % 10 < 3`,
 			},
 			want:    true,
 			wantErr: false,
@@ -96,7 +96,7 @@ func TestAST_Judge(t *testing.T) {
 					"app": "media_std",
 					"uid": 5,
 				},
-				rule: `app == "media_std" && uid % 10 < 3`,
+				rule: `${app} == "media_std" && ${uid} % 10 < 3`,
 			},
 			want:    false,
 			wantErr: false,
@@ -111,7 +111,7 @@ func TestAST_Judge(t *testing.T) {
 					"app": "std_media",
 					"uid": 2,
 				},
-				rule: `app == "media_std" && uid % 10 < 3`,
+				rule: `${app} == "media_std" && ${uid} % 10 < 3`,
 			},
 			want:    false,
 			wantErr: false,
@@ -126,7 +126,7 @@ func TestAST_Judge(t *testing.T) {
 					"app": "media_std",
 					"uid": 5,
 				},
-				rule: `app == "media_std" || uid % 10 < 3`,
+				rule: `${app} == "media_std" || ${uid} % 10 < 3`,
 			},
 			want:    true,
 			wantErr: false,
@@ -141,7 +141,7 @@ func TestAST_Judge(t *testing.T) {
 					"app": "std_media",
 					"uid": 3,
 				},
-				rule: `app == "media_std" || uid % 10 <= 3`,
+				rule: `${app} == "media_std" || ${uid} % 10 <= 3`,
 			},
 			want:    true,
 			wantErr: false,
@@ -156,7 +156,7 @@ func TestAST_Judge(t *testing.T) {
 					"app": "std_media",
 					"uid": 3,
 				},
-				rule: `false && (app == "media_std" || uid % 10 <= 3)`,
+				rule: `false && (${app} == "media_std" || ${uid} % 10 <= 3)`,
 			},
 			want:    false,
 			wantErr: false,
@@ -170,12 +170,12 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"uid": 3,
 				},
-				ops: map[string]func(interface{}) bool{
+				ops: map[string]interface{}{
 					"cls_whitelist": func(uid interface{}) bool {
 						return true
 					},
 				},
-				rule: `cls_whitelist[uid]`,
+				rule: `cls_whitelist(${uid})`,
 			},
 			want:    true,
 			wantErr: false,
@@ -189,12 +189,12 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"uid": 3,
 				},
-				ops: map[string]func(interface{}) bool{
+				ops: map[string]interface{}{
 					"cls_whitelist": func(uid interface{}) bool {
 						return false
 					},
 				},
-				rule: `cls_whitelist[uid]`,
+				rule: `cls_whitelist(${uid})`,
 			},
 			want:    false,
 			wantErr: false,
@@ -208,7 +208,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
 				},
-				rule: `cv[2:3]=="7"`,
+				rule: `${cv}[2:3]=="7"`,
 			},
 			want:    true,
 			wantErr: false,
@@ -222,7 +222,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
 				},
-				rule: `cv[8:]=="Iphone"`,
+				rule: `${cv}[8:]=="Iphone"`,
 			},
 			want:    true,
 			wantErr: false,
@@ -236,7 +236,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
 				},
-				rule: `!(cv[8:]=="Iphone")`,
+				rule: `!(${cv}[8:]=="Iphone")`,
 			},
 			want:    false,
 			wantErr: false,
@@ -250,7 +250,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
 				},
-				rule: `cv[8:100]=="Iphone"`,
+				rule: `${cv}[8:100]=="Iphone"`,
 			},
 			want:    false,
 			wantErr: true,
@@ -264,7 +264,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
 				},
-				rule: `contains(cv,"Iphone")`,
+				rule: `contains(${cv},"Iphone")`,
 			},
 			want:    true,
 			wantErr: false,
@@ -278,7 +278,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"cv": "IK7.8.9_Iphone",
 				},
-				rule: `contains(cv,"Android")`,
+				rule: `contains(${cv},"Android")`,
 			},
 			want:    false,
 			wantErr: false,
@@ -292,10 +292,10 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"app": "media_std",
 				},
-				rule: `app == media_std`,
+				rule: `${app} == media_std`,
 			},
-			want:    false,
-			wantErr: true,
+			want:    true,
+			wantErr: false,
 		},
 		{
 			name: "20",
@@ -306,7 +306,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"app": "media_std",
 				},
-				rule: `app == media_std`,
+				rule: `${app} == media_std`,
 			},
 			want:    true,
 			wantErr: false,
@@ -320,7 +320,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"app": "media_std",
 				},
-				rule: `"media_std" == app`,
+				rule: `"media_std" == ${app}`,
 			},
 			want:    true,
 			wantErr: false,
@@ -334,7 +334,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"uid": 123456,
 				},
-				rule: `uid == 123456`,
+				rule: `${uid} == 123456`,
 			},
 			want:    true,
 			wantErr: false,
@@ -348,7 +348,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"uid": 123456,
 				},
-				rule: `uid == 654321`,
+				rule: `${uid} == 654321`,
 			},
 			want:    false,
 			wantErr: false,
@@ -362,7 +362,7 @@ func TestAST_Judge(t *testing.T) {
 				args: map[string]interface{}{
 					"liveid": "123456",
 				},
-				rule: `mod(liveid, 100)==56`,
+				rule: `mod(${liveid}, 100)==56`,
 			},
 			want:    true,
 			wantErr: false,
