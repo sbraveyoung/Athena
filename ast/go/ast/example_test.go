@@ -11,7 +11,7 @@ import (
 	"go/format"
 	"go/parser"
 
-	"github.com/SmartBrave/utils_sb/ast/go/token"
+	"github.com/SmartBrave/Athena/ast/go/token"
 )
 
 // This example demonstrates how to inspect the AST of a Go program.

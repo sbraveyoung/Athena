@@ -1,3 +1,3 @@
-module github.com/SmartBrave/utils_sb/easyerrors
+module github.com/SmartBrave/Athena/easyerrors
 
 go 1.14

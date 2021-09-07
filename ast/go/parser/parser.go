@@ -22,10 +22,10 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/SmartBrave/utils_sb/ast/go/ast"
-	"github.com/SmartBrave/utils_sb/ast/go/internal/typeparams"
-	"github.com/SmartBrave/utils_sb/ast/go/scanner"
-	"github.com/SmartBrave/utils_sb/ast/go/token"
+	"github.com/SmartBrave/Athena/ast/go/ast"
+	"github.com/SmartBrave/Athena/ast/go/internal/typeparams"
+	"github.com/SmartBrave/Athena/ast/go/scanner"
+	"github.com/SmartBrave/Athena/ast/go/token"
 )
 
 // The parser structure holds the parser's internal state.

@@ -7,7 +7,7 @@
 
 package ast
 
-import "github.com/SmartBrave/utils_sb/ast/go/token"
+import "github.com/SmartBrave/Athena/ast/go/token"
 
 type (
 	// A FuncType node represents a function type.

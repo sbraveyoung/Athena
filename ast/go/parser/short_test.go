@@ -7,7 +7,7 @@
 package parser
 
 import (
-	"github.com/SmartBrave/utils_sb/ast/go/internal/typeparams"
+	"github.com/SmartBrave/Athena/ast/go/internal/typeparams"
 	"testing"
 )
 

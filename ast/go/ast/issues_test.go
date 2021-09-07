@@ -9,7 +9,7 @@ import (
 	"go/parser"
 	"testing"
 
-	"github.com/SmartBrave/utils_sb/ast/go/token"
+	"github.com/SmartBrave/Athena/ast/go/token"
 )
 
 func TestIssue33649(t *testing.T) {

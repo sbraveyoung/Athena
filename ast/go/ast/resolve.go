@@ -10,8 +10,8 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/SmartBrave/utils_sb/ast/go/scanner"
-	"github.com/SmartBrave/utils_sb/ast/go/token"
+	"github.com/SmartBrave/Athena/ast/go/scanner"
+	"github.com/SmartBrave/Athena/ast/go/token"
 )
 
 type pkgBuilder struct {

@@ -12,7 +12,7 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/SmartBrave/utils_sb/ast/go/token"
+	"github.com/SmartBrave/Athena/ast/go/token"
 )
 
 // A FieldFilter may be provided to Fprint to control the output.

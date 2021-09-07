@@ -1,3 +1,3 @@
-module github.com/SmartBrave/utils_sb/broadcast
+module github.com/SmartBrave/Athena/broadcast
 
 go 1.16

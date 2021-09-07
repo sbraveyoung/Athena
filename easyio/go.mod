@@ -1,3 +1,3 @@
-module github.com/SmartBrave/utils_sb/easyio
+module github.com/SmartBrave/Athena/easyio
 
 go 1.16

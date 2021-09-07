@@ -9,8 +9,8 @@ package parser
 import (
 	"bytes"
 	"errors"
-	"github.com/SmartBrave/utils_sb/ast/go/ast"
-	"github.com/SmartBrave/utils_sb/ast/go/token"
+	"github.com/SmartBrave/Athena/ast/go/ast"
+	"github.com/SmartBrave/Athena/ast/go/token"
 	"io"
 	"io/fs"
 	"os"

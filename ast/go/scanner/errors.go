@@ -9,7 +9,7 @@ import (
 	"io"
 	"sort"
 
-	"github.com/SmartBrave/utils_sb/ast/go/token"
+	"github.com/SmartBrave/Athena/ast/go/token"
 )
 
 // In an ErrorList, an error is represented by an *Error.

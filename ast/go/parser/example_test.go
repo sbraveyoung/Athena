@@ -6,8 +6,8 @@ package parser_test
 
 import (
 	"fmt"
-	"github.com/SmartBrave/utils_sb/ast/go/parser"
-	"github.com/SmartBrave/utils_sb/ast/go/token"
+	"github.com/SmartBrave/Athena/ast/go/parser"
+	"github.com/SmartBrave/Athena/ast/go/token"
 )
 
 func ExampleParseFile() {

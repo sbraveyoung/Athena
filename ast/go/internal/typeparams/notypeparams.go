@@ -8,7 +8,7 @@
 package typeparams
 
 import (
-	"github.com/SmartBrave/utils_sb/ast/go/ast"
+	"github.com/SmartBrave/Athena/ast/go/ast"
 )
 
 const Enabled = false
