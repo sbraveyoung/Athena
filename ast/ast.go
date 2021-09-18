@@ -97,7 +97,11 @@ func (a *AST) do(variable map[string]interface{}, functions map[string]interface
 		xv := reflect.ValueOf(x)
 		switch reflect.TypeOf(x).Kind() {
 		case reflect.Array, reflect.Slice, reflect.String:
-			return xv.Index(index.(int)).Interface(), nil
+			if iIndex, ok := index.(int); !ok {
+				return nil, badError
+			} else {
+				return xv.Index(iIndex).Interface(), nil
+			}
 		case reflect.Map:
 			return xv.MapIndex(reflect.ValueOf(index)).Interface(), nil
 		default:
@@ -139,11 +143,8 @@ func (a *AST) do(variable map[string]interface{}, functions map[string]interface
 
 		switch x.(type) {
 		case int:
-			xv, okx := x.(int)
-			yv, oky := y.(int)
-			if !okx || !oky {
-				return nil, badError
-			}
+			xv, _ := x.(int)
+			yv, _ := y.(int)
 			switch binaryExpr.Op {
 			case token.REM: //%
 				return xv % yv, nil
@@ -177,11 +178,8 @@ func (a *AST) do(variable map[string]interface{}, functions map[string]interface
 				return nil, badError
 			}
 		case bool:
-			xv, okx := x.(bool)
-			yv, oky := y.(bool)
-			if !okx || !oky {
-				return nil, badError
-			}
+			xv, _ := x.(bool)
+			yv, _ := y.(bool)
 			switch binaryExpr.Op {
 			case token.LAND: //&&
 				return xv && yv, nil
