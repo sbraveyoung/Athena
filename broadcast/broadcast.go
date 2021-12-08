@@ -5,8 +5,9 @@ import (
 )
 
 type Broadcast struct {
-	data   []interface{}
+	data   []interface{} //TODO: rewrite with type parameter
 	c      *sync.Cond
+	start  bool
 	alive  bool
 	lrSize int //size of last round
 	round  int
@@ -15,10 +16,15 @@ type Broadcast struct {
 
 func NewBroadcast() *Broadcast {
 	return &Broadcast{
+		start: false,
 		alive: true,
 		//TODO: implement a RWMutex to replace Mutex here!
 		c: sync.NewCond(&sync.Mutex{}),
 	}
+}
+
+func (bd *Broadcast) Start() {
+	bd.start = true
 }
 
 func (bd *Broadcast) Write(p interface{}) {
@@ -75,6 +81,11 @@ func (r *BroadcastReader) Read() (p interface{}, alive bool) {
 	defer r.bd.c.L.Unlock()
 
 	for {
+		if !r.bd.start {
+			r.bd.c.Wait()
+			continue
+		}
+
 		alive = r.bd.alive
 		if r.round == r.bd.round-1 {
 			if r.rIndex < r.bd.wIndex {
@@ -101,7 +112,7 @@ func (r *BroadcastReader) Read() (p interface{}, alive bool) {
 		}
 		break
 	}
-	p = r.bd.data[r.rIndex]
+	p = r.bd.data[r.rIndex] //BUG: maybe panic with index 0
 	r.rIndex++
 	return p, true
 }

@@ -39,6 +39,7 @@ func TestBroadcast(t *testing.T) {
 		//time.Sleep(time.Second * time.Duration(1))
 		bd.Write(i)
 	}
+	bd.Start()
 
 	time.Sleep(time.Second * time.Duration(1))
 	bd.Reset()
