@@ -1,0 +1,6 @@
+github.com/SmartBrave/Athena/easyerrors v0.0.0-20210909122853-6ce6ff3d50c3 h1:mVt8FbVmwDU8U3CFL6py00g+fMTtaDy9KRcjLv+1m78=
+github.com/SmartBrave/Athena/easyerrors v0.0.0-20210909122853-6ce6ff3d50c3/go.mod h1:5yocT+/Adt/zT6V4Wqqx6z5LfIa4LAIZt+5PhhsqORc=
+github.com/SmartBrave/Athena/easyio v0.0.0-20210918190435-e3822f2e1660 h1:o6LXyvy35UZqBI/T0iyzlTsSMpPlnRGOqYZb+CcczDo=
+github.com/SmartBrave/Athena/easyio v0.0.0-20210918190435-e3822f2e1660/go.mod h1:V/WAj02Va6hgVllSHoxNxRSEVmkizeTXusSPxjrCMeg=
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
