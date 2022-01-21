@@ -7,7 +7,7 @@ import (
 )
 
 func TestBroadcast(t *testing.T) {
-	bd := NewBroadcast()
+	bd := NewBroadcast(3)
 	reader1 := NewBroadcastReader(bd)
 	reader2 := NewBroadcastReader(bd)
 
@@ -35,11 +35,13 @@ func TestBroadcast(t *testing.T) {
 	}()
 
 	//producer
-	for i := 0; i < 20; i++ {
+	bd.WriteMeta(0)
+	bd.WriteMeta(1)
+	bd.WriteMeta(2)
+	for i := 3; i < 20; i++ {
 		//time.Sleep(time.Second * time.Duration(1))
 		bd.Write(i)
 	}
-	bd.Start()
 
 	time.Sleep(time.Second * time.Duration(1))
 	bd.Reset()
