@@ -1,8 +1,8 @@
 **Athena**: Some libraries that make [golang](https://golang.org/) better.
 
-* :sunny: [ast](./ast): **Ast** is a library that parse a logic expression like golang code, and return a boolean to report true or false.
+* :sunny: [ast](./ast): **Ast** is a library that parse a logic expression like golang's code, and return a boolean value to report true or false.
 * :tada: [bitmap](./bitmap): A bitmap implementation.
-* :beer: [broadcast](./broadcast): Want to broadcast a message in golang between goroutines? Try it!
+* :beer: [broadcast](./broadcast): Want to broadcast a message in golang between goroutines? Let's try!
 * :lollipop: [consistent_hash](./consistent_hash): A consistent hash implementation.
 * :dog: [easybits](./easybits): Package easybits implements encoding(TODO) and decoding of binary data. The mapping between binary data and Go values is described in the documentation(TODO) for the Marshal and Unmarshal functions.
 
