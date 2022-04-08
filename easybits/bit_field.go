@@ -11,63 +11,103 @@ import (
 )
 
 func Marshal(v interface{}, writer easyio.EasyWriter) (err error) {
+	//TODO
 	return nil
 }
 
 func Unmarshal(reader easyio.EasyReader, v interface{}) (err error) {
-	//value := reflect.ValueOf(v)
-	//if value.Kind() != reflect.Ptr {
-	//	return fmt.Errorf("invalid type of v:%+v", value.Kind())
-	//}
-	//value = value.Elem()
-	//if value.Kind() != reflect.Struct {
-	//	return fmt.Errorf("invalid type of *v:%+v", value.Kind())
-	//}
-
 	tYpe := reflect.TypeOf(v)
 	if tYpe.Kind() != reflect.Ptr {
 		return fmt.Errorf("invalid type of v:%+v", tYpe.Kind())
 	}
 	tYpe = tYpe.Elem()
-	if tYpe.Kind() != reflect.Ptr {
-		return fmt.Errorf("invalid type of v:%+v", tYpe.Kind())
+	if tYpe.Kind() != reflect.Struct {
+		return fmt.Errorf("invalid type of *v:%+v", tYpe.Kind())
 	}
+	value := reflect.ValueOf(v).Elem()
 
-	//var b []byte
-	//var index int
-	//for i := 0; i < tYpe.NumField(); i++ {
-	//	field := tYpe.Field(i)
-	//	bitTag := field.Tag.Get("bits")
+	var b []byte
+	for i := 0; i < tYpe.NumField(); i++ {
+		field := tYpe.Field(i)
+		typeFieldBits := field.Type.Bits()
 
-	//	bits := field.Type.Bits()
-	//	if bitTag != "" {
-	//		bits, err = strconv.Atoi(bitTag)
-	//		if err != nil {
-	//			return fmt.Errorf("invlid tag, %v", err)
-	//		}
-	//		if bits > typeFieldBits {
-	//			bits = typeFieldBits
-	//		}
-	//	}
+		bitTag := field.Tag.Get("bits")
+		if bitTag == "" {
+			continue
+		}
 
-	//	if len(b)*8-index < bits {
-	//		needBits := bits - (len(b)*8 - index)
-	//		needBytes := needBits / 8
-	//		if needBits%8 != 0 {
-	//			needBytes++
-	//		}
-	//		b = append(b, make([]byte, needBytes)...)
-	//		err = reader.ReadFull(b[len(b)-needBytes:])
-	//		if err != nil {
-	//			return err
-	//		}
-	//	}
+		startByte, startBit, endByte, endBit, err := parse(bitTag)
+		if err != nil {
+			return fmt.Errorf("invlid tag of bits:%s, err:%v", bitTag, err)
+		}
 
-	//	valueField := value.Field(i)
-	//	if 8-index >= bits {
-	//		// valueField.Set(b[0]>>index
-	//	}
-	//}
+		bits := (endByte-startByte)*8 + (endBit - startBit)
+		if bits == 0 {
+			continue
+		}
+		if bits > typeFieldBits {
+			// bits = typeFieldBits
+			return fmt.Errorf("The field is to small to store the num by tag:%s", field.Name)
+		}
+
+		toReadBytes := 0
+		if endBit == 0 && endByte > len(b) {
+			toReadBytes = endByte - len(b)
+		} else if endBit > 0 && endByte >= len(b) {
+			toReadBytes = endByte - len(b) + 1
+		}
+
+		if toReadBytes > 0 {
+			tmpBuf, err := reader.ReadN(uint32(toReadBytes))
+			if err != nil {
+				return fmt.Errorf("not enough data from reader")
+			}
+			b = append(b, tmpBuf...)
+		}
+
+		var n uint64
+		for index := startByte; index <= endByte; index++ {
+			lbit, rbit := 0, 8
+			if index == startByte {
+				lbit = startBit
+			}
+			if index == endByte {
+				rbit = endBit
+			}
+			for bitIndex := lbit; bitIndex < rbit; bitIndex++ {
+				n <<= 1
+				n |= uint64((b[index] >> (8 - bitIndex - 1)) & 0x01)
+			}
+		}
+
+		valueField := value.Field(i)
+		if valueField.CanSet() {
+			switch field.Type.Kind() {
+			case reflect.Int:
+				valueField.Set(reflect.ValueOf(int(n)))
+			case reflect.Int8:
+				valueField.Set(reflect.ValueOf(int8(n)))
+			case reflect.Int16:
+				valueField.Set(reflect.ValueOf(int16(n)))
+			case reflect.Int32:
+				valueField.Set(reflect.ValueOf(int32(n)))
+			case reflect.Int64:
+				valueField.Set(reflect.ValueOf(int64(n)))
+			case reflect.Uint:
+				valueField.Set(reflect.ValueOf(uint(n)))
+			case reflect.Uint8:
+				valueField.Set(reflect.ValueOf(uint8(n)))
+			case reflect.Uint16:
+				valueField.Set(reflect.ValueOf(uint16(n)))
+			case reflect.Uint32:
+				valueField.Set(reflect.ValueOf(uint32(n)))
+			case reflect.Uint64:
+				valueField.Set(reflect.ValueOf(uint64(n)))
+			default:
+				return fmt.Errorf("invalid field:%s", field.Name)
+			}
+		}
+	}
 	return nil
 }
 
@@ -76,12 +116,10 @@ var (
 )
 
 //[startByte.startBit,endByte.endBit)
-//startByte == -1 means current byte
-//endByte == -1 means all data to fill this field
-//startBit == -1 or endBit == -1 means ignore this field
 func parse(expression string) (startByte, startBit, endByte, endBit int, err error) {
+	startByte, startBit, endByte, endBit = 0, 0, 0, 0
 	if expression == "-" || expression == "" {
-		return -1, -1, -1, -1, nil
+		return
 	}
 
 	if !strings.HasPrefix(expression, "[") || !strings.HasSuffix(expression, "]") {
@@ -89,7 +127,6 @@ func parse(expression string) (startByte, startBit, endByte, endBit int, err err
 		return
 	}
 
-	startByte, startBit, endByte, endBit = -1, 0, -1, 0
 	var err1, err2, err3, err4 error
 	slice := strings.Split(expression[1:len(expression)-1], ":")
 	switch len(slice) {
@@ -143,7 +180,7 @@ func parse(expression string) (startByte, startBit, endByte, endBit int, err err
 	}
 
 	err = easyerrors.HandleMultiError(easyerrors.Simple(), err1, err2, err3, err4)
-	if startByte < -1 || endByte < -1 || startBit < 0 || startBit > 7 || endBit < 0 || endBit > 7 {
+	if startByte < -1 || endByte < -1 || startBit < 0 || startBit > 7 || endBit < 0 || endBit > 7 || endByte < startByte || (endByte == startByte && endBit < startBit) {
 		err = invalidErr
 	}
 	return

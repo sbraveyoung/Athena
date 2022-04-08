@@ -1,7 +1,11 @@
 package easybits
 
 import (
+	"bytes"
+	"reflect"
 	"testing"
+
+	"github.com/SmartBrave/Athena/easyio"
 )
 
 //func TestMarshal(t *testing.T) {
@@ -24,62 +28,162 @@ import (
 //		})
 //	}
 //}
-//
-//func TestUnmarshal(t *testing.T) {
-//	type foo struct {
-//		A uint8 `bits:"[1.2:2.3]"` //第一个字节的第二个比特，到第二个字节的第三个比特
-//		B uint8 `bits:"[1]"`       //紧邻上面字段的后一个比特
-//		C uint8 `bits:"[3.1]"`     //第三个字节的第一个比特
-//		D uint8 `bits:"-"`         //ignore
-//		E uint8 `bits:"[-]"`
-//		F uint8 `bits:"[1]"`
-//		G uint8 `bits:"[1]"`
-//		H uint8 `bits:"[1]"`
-//	}
-//	type args struct {
-//		b []byte
-//		v foo
-//	}
-//	tests := []struct {
-//		name    string
-//		args    args
-//		want    foo
-//		wantErr bool
-//	}{
-//		// TODO: Add test cases.
-//		{
-//			name: "first",
-//			args: args{
-//				b: []byte{0x83},
-//				v: foo{},
-//			},
-//			want: foo{
-//				A: 0x01,
-//				B: 0x00,
-//				C: 0x00,
-//				D: 0x00,
-//				E: 0x00,
-//				F: 0x00,
-//				G: 0x01,
-//				H: 0x01,
-//			},
-//			wantErr: false,
-//		},
-//	}
-//	for _, tt := range tests {
-//		t.Run(tt.name, func(t *testing.T) {
-//			bytesReader := bytes.NewReader(tt.args.b)
-//			reader := easyio.NewEasyReader(bytesReader)
-//
-//			if err := Unmarshal(reader, &tt.args.v); (err != nil) != tt.wantErr {
-//				t.Errorf("Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
-//			}
-//			if !reflect.DeepEqual(tt.args.v, tt.want) {
-//				t.Errorf("Unmarshal fail. want:%v, got:%v", tt.want, tt.args.v)
-//			}
-//		})
-//	}
-//}
+
+func TestUnmarshal(t *testing.T) {
+	type foo struct {
+		A uint8 `bits:"[1.2:2.2]"` //第一个字节的第二个比特，到第二个字节的第三个比特
+		// B uint8 `bits:"[1]"`       //紧邻上面字段的后一个比特 TODO: support after
+		// C uint8 `bits:"[3.1]"`     //第三个字节的第一个比特 TODO: support after
+		D uint8 `bits:"-"` //ignore
+		// E uint8 `bits:"[-]"` TODO: support after
+		// F uint8 `bits:"[1]"` TODO: support after
+		// G uint8 `bits:"[1]"` TODO: support after
+		// H uint8 `bits:"[1]"` TODO: support after
+		I uint8 `bits:"[2.3:2.4]"`
+		J uint8 `bits:"[3.0:4.0]"`
+		// TODO: `bits:[1.0:2.0],if xxx`
+	}
+	type args struct {
+		b []byte
+		v foo
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    foo
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "first",
+			args: args{
+				b: []byte{0b10000011, 0b00010001, 0b00111001, 0b11111010},
+				v: foo{},
+			},
+			want: foo{
+				A: 0b01000100,
+				// B: 0x00,
+				// C: 0x00,
+				D: 0b0,
+				// E: 0x00,
+				// F: 0x00,
+				// G: 0x01,
+				// H: 0x01,
+				I: 0b1,
+				J: 0b11111010,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bytesReader := bytes.NewReader(tt.args.b)
+			reader := easyio.NewEasyReader(bytesReader)
+
+			if err := Unmarshal(reader, &tt.args.v); (err != nil) != tt.wantErr {
+				t.Errorf("Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !reflect.DeepEqual(tt.args.v, tt.want) {
+				t.Errorf("Unmarshal fail. want:%v, got:%v", tt.want, tt.args.v)
+			}
+		})
+	}
+}
+
+func TestUnmarshal_1(t *testing.T) {
+	type foo struct {
+		A uint8  `bits:"[0.0:0.1]"`
+		B uint8  `bits:"[0.1:0.2]"`
+		C uint8  `bits:"[0.2:0.3]"`
+		D uint8  `bits:"[0.3:0.4]"`
+		E uint8  `bits:"[0.4:0.5]"`
+		F uint8  `bits:"[0.5:0.6]"`
+		G uint8  `bits:"[0.6:0.7]"`
+		H uint8  `bits:"[0.7:1.0]"`
+		I uint8  `bits:"[0.0:0.2]"`
+		J uint16 `bits:"[0.0:0.3]"`
+		K uint8  `bits:"[0.0:0.4]"`
+		L uint8  `bits:"[0.0:0.5]"`
+		M uint8  `bits:"[0.0:0.6]"`
+		N uint8  `bits:"[0.0:0.7]"`
+		O uint8  `bits:"[0.0:1.0]"`
+		P uint16 `bits:"[0.0:1.1]"`
+		Q uint16 `bits:"[0.0:1.2]"`
+		R uint16 `bits:"[0.0:1.3]"`
+		S uint16 `bits:"[0.0:1.4]"`
+		T uint16 `bits:"[0.0:1.5]"`
+		U uint16 `bits:"[0.0:1.6]"`
+		V uint16 `bits:"[0.0:1.7]"`
+		W uint8  `bits:"[0.4:1.1]"`
+		X uint16 `bits:"[0.4:1.7]"`
+		Y uint16 `bits:"[0.7:2.0]"`
+		Z uint16 `bits:"[1.3:2.7]"`
+	}
+	type args struct {
+		b []byte
+		v foo
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    foo
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "first",
+			args: args{
+				b: []byte{0b10101010, 0b11011011, 0b00100100},
+				v: foo{},
+			},
+			// want:{1 0 1 0 1 0 1 0 2 5 10 21 42 85 170 341 683 1366 2733 5467 10934 21869 21 1389 219 3474},
+			// got :{1 0 0 0 1 0 1 0 2 5 10 21 42 85 170 341 683 1366 2733 5467 10934 21869 21 1389 219 3474}
+
+			want: foo{
+				A: 0b1,
+				B: 0b0,
+				C: 0b1,
+				D: 0b0,
+				E: 0b1,
+				F: 0b0,
+				G: 0b1,
+				H: 0b0,
+				I: 0b10,
+				J: 0b101,
+				K: 0b1010,
+				L: 0b10101,
+				M: 0b101010,
+				N: 0b1010101,
+				O: 0b10101010,
+				P: 0b101010101,
+				Q: 0b1010101011,
+				R: 0b10101010110,
+				S: 0b101010101101,
+				T: 0b1010101011011,
+				U: 0b10101010110110,
+				V: 0b101010101101101,
+				W: 0b10101,
+				X: 0b10101101101,
+				Y: 0b011011011,
+				Z: 0b110110010010,
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			bytesReader := bytes.NewReader(tt.args.b)
+			reader := easyio.NewEasyReader(bytesReader)
+
+			if err := Unmarshal(reader, &tt.args.v); (err != nil) != tt.wantErr {
+				t.Errorf("Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if !reflect.DeepEqual(tt.args.v, tt.want) {
+				t.Errorf("Unmarshal fail. want:%v, got:%v", tt.want, tt.args.v)
+			}
+		})
+	}
+}
 
 func TestParse(t *testing.T) {
 	tests := []struct {
@@ -94,19 +198,19 @@ func TestParse(t *testing.T) {
 		{
 			name:          "first",
 			expression:    "",
-			wantStartByte: -1,
-			wantStartBit:  -1,
-			wantEndByte:   -1,
-			wantEndBit:    -1,
+			wantStartByte: 0,
+			wantStartBit:  0,
+			wantEndByte:   0,
+			wantEndBit:    0,
 			wantErr:       false,
 		},
 		{
 			name:          "second",
 			expression:    "-",
-			wantStartByte: -1,
-			wantStartBit:  -1,
-			wantEndByte:   -1,
-			wantEndBit:    -1,
+			wantStartByte: 0,
+			wantStartBit:  0,
+			wantEndByte:   0,
+			wantEndBit:    0,
 			wantErr:       false,
 		},
 		{
@@ -148,7 +252,7 @@ func TestParse(t *testing.T) {
 		{
 			name:          "seventh",
 			expression:    "[:2]",
-			wantStartByte: -1,
+			wantStartByte: 0,
 			wantStartBit:  0,
 			wantEndByte:   2,
 			wantEndBit:    0,
@@ -156,8 +260,8 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:          "eighth",
-			expression:    "[:2.1]",
-			wantStartByte: -1,
+			expression:    "[:2.1]", //TODO: support
+			wantStartByte: 0,
 			wantStartBit:  0,
 			wantEndByte:   2,
 			wantEndBit:    1,
@@ -165,25 +269,25 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:          "ninth",
-			expression:    "[1:]",
+			expression:    "[1:]", //TODO: support
 			wantStartByte: 1,
 			wantStartBit:  0,
-			wantEndByte:   -1,
+			wantEndByte:   0,
 			wantEndBit:    0,
-			wantErr:       false,
+			wantErr:       true,
 		},
 		{
 			name:          "tenth",
-			expression:    "[1.1:]",
+			expression:    "[1.1:]", //TODO: support
 			wantStartByte: 1,
 			wantStartBit:  1,
-			wantEndByte:   -1,
+			wantEndByte:   0,
 			wantEndBit:    0,
-			wantErr:       false,
+			wantErr:       true,
 		},
 		{
 			name:          "eleventh",
-			expression:    "[1.1]",
+			expression:    "[1.1]", //TODO: support
 			wantStartByte: 1,
 			wantStartBit:  1,
 			wantEndByte:   1,
@@ -192,7 +296,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:          "twelfth",
-			expression:    "[1]",
+			expression:    "[1]", //TODO: support
 			wantStartByte: 1,
 			wantStartBit:  0,
 			wantEndByte:   1,
