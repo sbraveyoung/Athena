@@ -4,6 +4,8 @@
 * :tada: [bitmap](./bitmap): A bitmap implementation.
 * :beer: [broadcast](./broadcast): Want to broadcast a message in golang between goroutines? Try it!
 * :lollipop: [consistent_hash](./consistent_hash): A consistent hash implementation.
+* :dog: [easybits](./easybits): Package easybits implements encoding(TODO) and decoding of binary data. The mapping between binary data and Go values is described in the documentation(TODO) for the Marshal and Unmarshal functions.
+
 * :poop: [easyerrors](./easyerrors): An easy way to handle error in golang.
 * :see_no_evil: [easyhttpclient](./easyhttpclient): An easy way to send HTTP request.
 * :panda_face: [easyio](./easyio): Like `io` package, but easy to use.
