@@ -92,32 +92,34 @@ func TestUnmarshal(t *testing.T) {
 
 func TestUnmarshal_1(t *testing.T) {
 	type foo struct {
-		A uint8  `bits:"[0.0:0.1]"`
-		B uint8  `bits:"[0.1:0.2]"`
-		C uint8  `bits:"[0.2:0.3]"`
-		D uint8  `bits:"[0.3:0.4]"`
-		E uint8  `bits:"[0.4:0.5]"`
-		F uint8  `bits:"[0.5:0.6]"`
-		G uint8  `bits:"[0.6:0.7]"`
-		H uint8  `bits:"[0.7:1.0]"`
-		I uint8  `bits:"[0.0:0.2]"`
-		J uint16 `bits:"[0.0:0.3]"`
-		K uint8  `bits:"[0.0:0.4]"`
-		L uint8  `bits:"[0.0:0.5]"`
-		M uint8  `bits:"[0.0:0.6]"`
-		N uint8  `bits:"[0.0:0.7]"`
-		O uint8  `bits:"[0.0:1.0]"`
-		P uint16 `bits:"[0.0:1.1]"`
-		Q uint16 `bits:"[0.0:1.2]"`
-		R uint16 `bits:"[0.0:1.3]"`
-		S uint16 `bits:"[0.0:1.4]"`
-		T uint16 `bits:"[0.0:1.5]"`
-		U uint16 `bits:"[0.0:1.6]"`
-		V uint16 `bits:"[0.0:1.7]"`
-		W uint8  `bits:"[0.4:1.1]"`
-		X uint16 `bits:"[0.4:1.7]"`
-		Y uint16 `bits:"[0.7:2.0]"`
-		Z uint16 `bits:"[1.3:2.7]"`
+		A     uint8    `bits:"[0.0:0.1]"`
+		B     uint8    `bits:"[0.1:0.2]"`
+		C     uint8    `bits:"[0.2:0.3]"`
+		D     uint8    `bits:"[0.3:0.4]"`
+		E     uint8    `bits:"[0.4:0.5]"`
+		F     uint8    `bits:"[0.5:0.6]"`
+		G     uint8    `bits:"[0.6:0.7]"`
+		H     uint8    `bits:"[0.7:1.0]"`
+		I     uint8    `bits:"[0.0:0.2]"`
+		J     uint16   `bits:"[0.0:0.3]"`
+		K     uint8    `bits:"[0.0:0.4]"`
+		L     uint8    `bits:"[0.0:0.5]"`
+		M     uint8    `bits:"[0.0:0.6]"`
+		N     uint8    `bits:"[0.0:0.7]"`
+		O     uint8    `bits:"[0.0:1.0]"`
+		P     uint16   `bits:"[0.0:1.1]"`
+		Q     uint16   `bits:"[0.0:1.2]"`
+		R     uint16   `bits:"[0.0:1.3]"`
+		S     uint16   `bits:"[0.0:1.4]"`
+		T     uint16   `bits:"[0.0:1.5]"`
+		U     uint16   `bits:"[0.0:1.6]"`
+		V     uint16   `bits:"[0.0:1.7]"`
+		W     uint8    `bits:"[0.4:1.1]"`
+		X     uint16   `bits:"[0.4:1.7]"`
+		Y     uint16   `bits:"[0.7:2.0]"`
+		Z     uint16   `bits:"[1.3:2.7]"`
+		Array [7]uint8 `bits:"[0.0:2.5:3]"`
+		Slice []uint8  `bits:"[0.0:2.6:5]"`
 	}
 	type args struct {
 		b []byte
@@ -136,8 +138,6 @@ func TestUnmarshal_1(t *testing.T) {
 				b: []byte{0b10101010, 0b11011011, 0b00100100},
 				v: foo{},
 			},
-			// want:{1 0 1 0 1 0 1 0 2 5 10 21 42 85 170 341 683 1366 2733 5467 10934 21869 21 1389 219 3474},
-			// got :{1 0 0 0 1 0 1 0 2 5 10 21 42 85 170 341 683 1366 2733 5467 10934 21869 21 1389 219 3474}
 
 			want: foo{
 				A: 0b1,
@@ -166,6 +166,22 @@ func TestUnmarshal_1(t *testing.T) {
 				X: 0b10101101101,
 				Y: 0b011011011,
 				Z: 0b110110010010,
+				Array: [7]uint8{
+					0b101,
+					0b010,
+					0b101,
+					0b101,
+					0b101,
+					0b100,
+					0b100,
+				},
+				Slice: []uint8{
+					0b10101,
+					0b01011,
+					0b01101,
+					0b10010,
+					0b01,
+				},
 			},
 			wantErr: false,
 		},
@@ -193,6 +209,7 @@ func TestParse(t *testing.T) {
 		wantStartBit  int
 		wantEndByte   int
 		wantEndBit    int
+		wantItemBit   int
 		wantErr       bool
 	}{
 		{
@@ -202,6 +219,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  0,
 			wantEndByte:   0,
 			wantEndBit:    0,
+			wantItemBit:   0,
 			wantErr:       false,
 		},
 		{
@@ -211,6 +229,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  0,
 			wantEndByte:   0,
 			wantEndBit:    0,
+			wantItemBit:   0,
 			wantErr:       false,
 		},
 		{
@@ -220,6 +239,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  0,
 			wantEndByte:   2,
 			wantEndBit:    0,
+			wantItemBit:   0,
 			wantErr:       false,
 		},
 		{
@@ -229,6 +249,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  0,
 			wantEndByte:   2,
 			wantEndBit:    0,
+			wantItemBit:   0,
 			wantErr:       false,
 		},
 		{
@@ -238,6 +259,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  0,
 			wantEndByte:   2,
 			wantEndBit:    1,
+			wantItemBit:   0,
 			wantErr:       false,
 		},
 		{
@@ -247,6 +269,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  1,
 			wantEndByte:   2,
 			wantEndBit:    0,
+			wantItemBit:   0,
 			wantErr:       false,
 		},
 		{
@@ -256,6 +279,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  0,
 			wantEndByte:   2,
 			wantEndBit:    0,
+			wantItemBit:   0,
 			wantErr:       false,
 		},
 		{
@@ -265,6 +289,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  0,
 			wantEndByte:   2,
 			wantEndBit:    1,
+			wantItemBit:   0,
 			wantErr:       false,
 		},
 		{
@@ -274,6 +299,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  0,
 			wantEndByte:   0,
 			wantEndBit:    0,
+			wantItemBit:   0,
 			wantErr:       true,
 		},
 		{
@@ -283,6 +309,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  1,
 			wantEndByte:   0,
 			wantEndBit:    0,
+			wantItemBit:   0,
 			wantErr:       true,
 		},
 		{
@@ -292,6 +319,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  1,
 			wantEndByte:   1,
 			wantEndBit:    2,
+			wantItemBit:   0,
 			wantErr:       false,
 		},
 		{
@@ -301,6 +329,7 @@ func TestParse(t *testing.T) {
 			wantStartBit:  0,
 			wantEndByte:   1,
 			wantEndBit:    7,
+			wantItemBit:   0,
 			wantErr:       false,
 		},
 		{
@@ -310,15 +339,26 @@ func TestParse(t *testing.T) {
 			//wantStartBit:  0,
 			//wantEndByte:   1,
 			//wantEndBit:    7,
+			// wantItemBit:0,
 			wantErr: true,
+		},
+		{
+			name:          "fourteenth",
+			expression:    "[0.0:3.5:3]",
+			wantStartByte: 0,
+			wantStartBit:  0,
+			wantEndByte:   3,
+			wantEndBit:    5,
+			wantItemBit:   3,
+			wantErr:       false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if startByte, startBit, endByte, endBit, err := parse(tt.expression); (err != nil) != tt.wantErr {
+			if startByte, startBit, endByte, endBit, itemBit, err := parse(tt.expression); (err != nil) != tt.wantErr {
 				t.Errorf("parse() error = %v, wantErr %v", err, tt.wantErr)
-			} else if err == nil && (startByte != tt.wantStartByte || startBit != tt.wantStartBit || endByte != tt.wantEndByte || endBit != tt.wantEndBit) {
-				t.Errorf("parse() startByte = %d, startBit = %d, endByte = %d, endBit = %d, wantStartByte = %d, wantStartBit = %d, wantEndByte = %d, wantEndBit = %d", startByte, startBit, endByte, endBit, tt.wantStartByte, tt.wantStartBit, tt.wantEndByte, tt.wantEndBit)
+			} else if err == nil && (startByte != tt.wantStartByte || startBit != tt.wantStartBit || endByte != tt.wantEndByte || endBit != tt.wantEndBit || itemBit != tt.wantItemBit) {
+				t.Errorf("parse() startByte = %d, startBit = %d, endByte = %d, endBit = %d, wantStartByte = %d, wantStartBit = %d, wantEndByte = %d, wantEndBit = %d, wantItemBit = %d", startByte, startBit, endByte, endBit, tt.wantStartByte, tt.wantStartBit, tt.wantEndByte, tt.wantEndBit, tt.wantItemBit)
 			}
 		})
 	}
