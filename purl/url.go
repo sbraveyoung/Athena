@@ -1,28 +1,29 @@
 package purl
 
 import (
+	"fmt"
 	"net/url"
 	"sort"
 	"strings"
 	"sync"
 
-	pool "github.com/SmartBrave/utils/easypool"
+	pool "github.com/sbraveyoung/Athena/easypool"
 )
 
 const (
-	NORMAL_MODE    = iota //do not use BLACKLIST AND WHITELIST
-	WHITELIST_MODE        //only the keys in WHITELIST can be set to index
-	BLACKLIST_MODE        //only the keys in BLACKLIST can NOT be set to index
+	NORMAL_MODE    = iota // do not use BLACKLIST AND WHITELIST
+	WHITELIST_MODE        // only the keys in WHITELIST can be set to index
+	BLACKLIST_MODE        // only the keys in BLACKLIST can NOT be set to index
 )
 
 var (
-	//If we have lots of keys and values,
-	//the index could be very large and spent much time on gc.
+	// If we have lots of keys and values,
+	// the index could be very large and spent much time on gc.
 	mode = NORMAL_MODE
 
 	oneInit sync.Once
-	//key: string
-	//value: bool
+	// key: string
+	// value: bool
 	indexList sync.Map
 	length    int
 )
@@ -40,23 +41,20 @@ func AddKeys(keys []string) {
 	}
 }
 
-func ParseQuery( /*m Values,*/ rawQuery string) Values {
-	var err error
-	m := NewValues()
+func ParseQuery( /*m Values,*/ rawQuery string) (m Values, err error) {
+	m = NewValues()
 	for rawQuery != "" {
-		key := rawQuery
-		if i := strings.IndexAny(key, "&;"); i >= 0 {
-			key, rawQuery = key[:i], key[i+1:]
-		} else {
-			rawQuery = ""
+		var key string
+		key, rawQuery, _ = strings.Cut(rawQuery, "&")
+		if strings.Contains(key, ";") {
+			err = fmt.Errorf("invalid semicolon separator in query")
+			continue
 		}
+
 		if key == "" {
 			continue
 		}
-		value := ""
-		if i := strings.Index(key, "="); i >= 0 {
-			key, value = key[:i], key[i+1:]
-		}
+		key, value, _ := strings.Cut(key, "=")
 		key, err1 := url.QueryUnescape(key)
 		if err1 != nil {
 			if err == nil {
@@ -73,12 +71,12 @@ func ParseQuery( /*m Values,*/ rawQuery string) Values {
 		}
 		m.Add(key, value)
 	}
-	return m
+	return m, err
 }
 
-//We assume that any key in the map has only one value.
-//The type of Values is unsafe for concurrent goroutines.
-//Please note: do not use url.URL.Query() to get Values, use ParseQuery() instead.
+// We assume that any key in the map has only one value.
+// The type of Values is unsafe for concurrent goroutines.
+// Please note: do not use url.URL.Query() to get Values, use ParseQuery() instead.
 type Values struct {
 	iv map[int]int
 	sv map[string]string
@@ -91,13 +89,13 @@ func NewValues() (m Values) {
 	switch mode {
 	case NORMAL_MODE:
 		m.sv = make(map[string]string)
-		//do nothing
+		// do nothing
 	case WHITELIST_MODE:
 		fallthrough
 	case BLACKLIST_MODE:
 		m.sv = make(map[string]string, length)
 	default:
-		//panic
+		// panic
 	}
 
 	return m
@@ -124,7 +122,7 @@ func (v *Values) Get(skey string) string {
 		ikey := getIndex(skey)
 		return getString(v.iv[ikey])
 	default:
-		//panic
+		// panic
 		return ""
 	}
 }
@@ -149,10 +147,11 @@ func (v *Values) Set(skey, svalue string) {
 		}
 		v.iv[getIndex(skey)] = getIndex(svalue)
 	default:
-		//panic
+		// panic
 		return
 	}
 }
+
 func (v *Values) Setnx(key, val string) bool {
 	if v.Get(key) != "" {
 		return false
@@ -185,7 +184,7 @@ func (v *Values) Del(skey string) {
 		ikey := getIndex(skey)
 		delete(v.iv, ikey)
 	default:
-		//panic
+		// panic
 		return
 	}
 }
@@ -207,18 +206,18 @@ func (v *Values) Encode() string {
 			value: svalue,
 		})
 	}
-	//XXX:why need to sort it?
+	// XXX:why need to sort it?
 	sort.Sort(kvs)
 
 	buf, putBuf := pool.GetBuffer()
 	defer putBuf(buf)
-	for i, _ := range kvs {
+	for i := range kvs {
 		if buf.Len() > 0 {
 			buf.WriteByte('&')
 		}
 		buf.WriteString(url.QueryEscape(kvs[i].key))
 		buf.WriteByte('=')
-		//XXX:could do better?
+		// XXX:could do better?
 		buf.WriteString(url.QueryEscape(kvs[i].value))
 	}
 	return buf.String()

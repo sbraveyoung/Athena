@@ -1,4 +1,4 @@
-package ourl
+package purl
 
 import (
 	"net/url"
@@ -6,9 +6,7 @@ import (
 	"testing"
 )
 
-var (
-	ki = &indexTable{}
-)
+var ki = &indexTable{}
 
 func init() {
 	ki.forwardIndex.Store("a", 1)
@@ -23,6 +21,20 @@ func init() {
 	ki.forwardIndex.Store("j", 10)
 	ki.forwardIndex.Store("k", 11)
 	ki.forwardIndex.Store("l", 12)
+	ki.forwardIndex.Store("m", 13)
+	ki.forwardIndex.Store("n", 14)
+	ki.forwardIndex.Store("o", 15)
+	ki.forwardIndex.Store("p", 16)
+	ki.forwardIndex.Store("q", 17)
+	ki.forwardIndex.Store("r", 18)
+	ki.forwardIndex.Store("s", 19)
+	ki.forwardIndex.Store("t", 20)
+	ki.forwardIndex.Store("u", 21)
+	ki.forwardIndex.Store("v", 22)
+	ki.forwardIndex.Store("w", 23)
+	ki.forwardIndex.Store("x", 24)
+	ki.forwardIndex.Store("y", 25)
+	ki.forwardIndex.Store("z", 26)
 
 	ki.backwardIndex.Store(1, "a")
 	ki.backwardIndex.Store(2, "b")
@@ -36,6 +48,20 @@ func init() {
 	ki.backwardIndex.Store(10, "j")
 	ki.backwardIndex.Store(11, "k")
 	ki.backwardIndex.Store(12, "l")
+	ki.backwardIndex.Store(13, "m")
+	ki.backwardIndex.Store(14, "n")
+	ki.backwardIndex.Store(15, "o")
+	ki.backwardIndex.Store(16, "p")
+	ki.backwardIndex.Store(17, "q")
+	ki.backwardIndex.Store(18, "r")
+	ki.backwardIndex.Store(19, "s")
+	ki.backwardIndex.Store(20, "t")
+	ki.backwardIndex.Store(21, "u")
+	ki.backwardIndex.Store(22, "v")
+	ki.backwardIndex.Store(23, "w")
+	ki.backwardIndex.Store(24, "x")
+	ki.backwardIndex.Store(25, "y")
+	ki.backwardIndex.Store(26, "z")
 }
 
 func TestParseQuery(t *testing.T) {
@@ -43,9 +69,10 @@ func TestParseQuery(t *testing.T) {
 		rawQuery string
 	}
 	tests := []struct {
-		name  string
-		args  args
-		wantM Values
+		name    string
+		args    args
+		wantM   Values
+		wantErr bool
 	}{
 		// TODO: Add test cases.
 		{
@@ -77,7 +104,10 @@ func TestParseQuery(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotM := ParseQuery(tt.args.rawQuery)
+			gotM, err := ParseQuery(tt.args.rawQuery)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ParseQuery return err = %v, want err = %v", err, tt.wantErr)
+			}
 			if !reflect.DeepEqual(gotM, tt.wantM) {
 				t.Errorf("ParseQuery() = %v, want %v", gotM, tt.wantM)
 			}
@@ -370,7 +400,7 @@ func TestValues_Set(t *testing.T) {
 	}
 }
 
-//------------------------------Benchmark---------------------------------
+// ------------------------------Benchmark---------------------------------
 var (
 	// rawQuery = "a=1&b=2&c=3&d=4&e=5&f=6&g=7&h=8&i=9&j=10&k=11&l=12&m=13&n=14&o=15&p=16&q=17&r=18&s=19&t=20&u=21&v=22&w=23&x=24&y=25&z=26"
 	// rawQuery = "a=1"
@@ -381,7 +411,8 @@ func BenchmarkParseQuery(b *testing.B) {
 	var v Values
 	var s string
 	for n := 0; n < b.N; n++ {
-		v = ParseQuery(rawQuery)
+		// XXX: 性能差查一下 go 版本的问题
+		v, _ = ParseQuery(rawQuery)
 		s = v.Encode()
 	}
 	_ = s
