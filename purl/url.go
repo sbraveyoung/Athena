@@ -101,6 +101,10 @@ func NewValues() (m Values) {
 	return m
 }
 
+func (v *Values) Len() int {
+	return len(v.iv) + len(v.sv)
+}
+
 func (v *Values) Get(skey string) string {
 	if v == nil {
 		return ""
