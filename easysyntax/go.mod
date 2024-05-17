@@ -1,3 +1,3 @@
-module github.com/SmartBrave/Athena/easysyntax
+module github.com/sbraveyoung/Athena/easysyntax
 
 go 1.17
