@@ -1,3 +1,3 @@
-module github.com/SmartBrave/Athena/easypool
+module github.com/sbraveyoung/Athena/easypool
 
 go 1.17
