@@ -245,7 +245,7 @@ func parse(expression string) (startByte, startBit, endByte, endBit, itemBit int
 			}
 		}
 	default:
-		err = invalidErr
+		err0 = invalidErr
 	}
 
 	err = easyerrors.HandleMultiError(easyerrors.Simple(), err0, err1, err2, err3, err4, err5)

@@ -11,6 +11,8 @@ const digits = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-
 var (
 	base   int    = 64
 	maxVal uint64 = uint64(1)<<uint(base) - 1
+
+	ErrSyntax = errors.New("invalid syntax")
 )
 
 func Atoi_64(s string) (n uint64, err error) {
@@ -24,9 +26,11 @@ func Atoi_64(s string) (n uint64, err error) {
 		case 'A' <= c && c <= 'Z':
 			d = c - 'A' + 36
 		case c == '.':
-			d = '0' - '0' + 62
+			d = 62
 		case c == '-':
-			d = '0' - '0' + 63
+			d = 63
+		default:
+			return 0, syntaxError("Atoi_64", s)
 		}
 
 		n *= uint64(base)
@@ -79,4 +83,8 @@ func (e *NumError) Unwrap() error { return e.Err }
 
 func rangeError(fn, str string) *NumError {
 	return &NumError{fn, str, ErrRange}
+}
+
+func syntaxError(fn, str string) *NumError {
+	return &NumError{fn, str, ErrSyntax}
 }
