@@ -129,9 +129,15 @@ func (r *BroadcastReader) Read() (p interface{}, alive bool) {
 		} else {
 			r.reset()
 		}
-		break
+		if r.rIndex >= len(r.bd.data) {
+			if !alive {
+				return nil, false
+			}
+			r.bd.c.Wait()
+			continue
+		}
+		p = r.bd.data[r.rIndex]
+		r.rIndex++
+		return p, true
 	}
-	p = r.bd.data[r.rIndex] //BUG: maybe panic with index 0
-	r.rIndex++
-	return p, true
 }

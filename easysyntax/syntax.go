@@ -13,7 +13,7 @@ func DoLoop(ctx context.Context, f func(), interval time.Duration) {
 		for {
 			select {
 			case <-ctx.Done():
-				break
+				return
 			case <-ticker.C:
 				f()
 			}
